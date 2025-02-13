@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AegisGC3</title>
+    <style>
+        /* General Styles */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: black; /* Set the background color to black */
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Loading Screen Styles */
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: black;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: opacity 1.5s ease;
+        }
+
+        /* Cube Animation Styles */
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            perspective: 1000px;
+        }
+
+        .h1Container, .h2Container, .h3Container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .cube {
+            width: 20px;
+            height: 20px;
+            position: relative;
+            transform-style: preserve-3d;
+            animation: rotate 3s infinite linear;
+        }
+
+        .face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .top {
+            transform: rotateX(90deg) translateZ(10px);
+        }
+
+        .left {
+            transform: rotateY(-90deg) translateZ(10px);
+        }
+
+        .right {
+            transform: rotateY(90deg) translateZ(10px);
+        }
+
+        @keyframes rotate {
+            0% { transform: rotateX(0) rotateY(0); }
+            100% { transform: rotateX(360deg) rotateY(360deg); }
+        }
+
+        /* Delay animations for each cube */
+        .h1Container .cube { animation-delay: 0s; }
+        .h2Container .cube { animation-delay: 0.5s; }
+        .h3Container .cube { animation-delay: 1s; }
+
+        /* Glassmorphism Effect */
+        .glass {
+            background: rgba(255, 255, 255, 0.2); /* Semi-transparent background */
+            backdrop-filter: blur(20px); /* Apply blur effect */
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            width: 90%;
+            max-width: 800px;
+            text-align: center;
+            z-index: 1;
+        }
+
+        /* Header and Title */
+        h1 {
+            font-size: 28px;
+            font-weight: bold;
+            animation: rainbow 3s infinite;
+            color: black;
+        }
+
+        /* Rainbow Animation */
+        @keyframes rainbow {
+            0% { color: #ff0000; }
+            16% { color: #ff7300; }
+            32% { color: #ffeb00; }
+            48% { color: #00ff00; }
+            64% { color: #0099ff; }
+            80% { color: #6e0dd0; }
+            100% { color: #ff0000; }
+        }
+
+        /* Navigation Neon Glow */
+        @keyframes neonGlow {
+            0% { text-shadow: 0 0 5px #ff00ff, 0 0 10px #ff00ff; }
+            50% { text-shadow: 0 0 10px #ff7300, 0 0 20px #ff7300; }
+            100% { text-shadow: 0 0 5px #ff00ff, 0 0 10px #ff00ff; }
+        }
+
+        nav {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            background-color: rgba(255, 255, 255, 0.3);
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        nav a {
+            padding: 10px 15px;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 16px;
+            border-radius: 12px;
+            background: rgba(169, 169, 169, 0.7); /* Set the background color to grey */
+            color: #ffffff; /* Set the text color to white */
+            animation: neonGlow 1.5s infinite alternate;
+            transition: all 0.3s ease-in-out;
+        }
+
+        nav a:hover {
+            background: rgba(128, 128, 128, 0.7); /* Slightly darker grey on hover */
+            transform: scale(1.1);
+        }
+
+        /* Slide-in Animation */
+        .content {
+            opacity: 0;
+            transform: translateX(100%);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+
+        .content.active {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        /* Price Button UI */
+        .price-button {
+            display: inline-block;
+            padding: 12px 20px;
+            background: linear-gradient(to right, #ff00ff, #ff0000);
+            color: white;
+            text-decoration: none;
+            border-radius: 20px;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(255, 0, 255, 0.3);
+            position: relative;
+            margin-top: 20px;
+            cursor: pointer;
+        }
+
+        .price-button:hover {
+            background: linear-gradient(to right, #ff0000, #ff7300);
+            transform: scale(1.05);
+        }
+
+        /* Price Reveal Animation (iOS-like) */
+        .price-container {
+            display: none;
+            opacity: 0;
+            transform: scale(0);
+            transition: opacity 0.5s ease, transform 0.5s ease-in-out;
+            margin-top: 10px;
+            transform-origin: center center; /* Make it expand from the center */
+        }
+
+        .price-container.show {
+            display: block;
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* Price Item Animations */
+        .price-item {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.6s forwards;
+            color: white; /* Changed from black to white */
+        }
+
+        .price-item:nth-child(1) {
+            animation-delay: 0.3s;
+        }
+
+        .price-item:nth-child(2) {
+            animation-delay: 0.5s;
+        }
+
+        .price-item:nth-child(3) {
+            animation-delay: 0.7s;
+        }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Telegram Logo */
+        .telegram-logo {
+            width: 60px;
+            height: 60px;
+            margin: 15px 0;
+            cursor: pointer;
+            border-radius: 50%;
+            box-shadow: 0 10px 15px rgba(0, 122, 255, 0.3);
+            background-color: white;
+            padding: 8px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .telegram-logo:hover {
+            transform: scale(1.1);
+            box-shadow: 0 15px 30px rgba(0, 122, 255, 0.4);
+        }
+
+        /* About Section Custom Styles */
+        .about-text {
+            color: white; /* Changed from black to white */
+        }
+
+        .home-text, .admins-text, .contact-text, .price-text {
+            color: white; /* Changed from black to white */
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Loading Screen with Cube Animation -->
+    <div id="loading-screen">
+        <div class="container">
+            <div class="h1Container">
+                <div class="cube h1 w1 l1">
+                    <div class="face top"></div>
+                    <div class="face left"></div>
+                    <div class="face right"></div>
+                </div>
+                <div class="cube h1 w1 l2">
+                    <div class="face top"></div>
+                    <div class="face left"></div>
+                    <div class="face right"></div>
+                </div>
+                <div class="cube h1 w1 l3">
+                    <div class="face top"></div>
+                    <div class="face left"></div>
+                    <div class="face right"></div>
+                </div>
+            </div>
+            <div class="h2Container">
+                <div class="cube h2 w1 l1">
+                    <div class="face top"></div>
+                    <div class="face left"></div>
+                    <div class="face right"></div>
+                </div>
+                <div class="cube h2 w1 l2">
+                    <div class="face top"></div>
+                    <div class="face left"></div>
+                    <div class="face right"></div>
+                </div>
+                <div class="cube h2 w1 l3">
+                    <div class="face top"></div>
+                    <div class="face left"></div>
+                    <div class="face right"></div>
+                </div>
+            </div>
+            <div class="h3Container">
+                <div class="cube h3 w1 l1">
+                    <div class="face top"></div>
+                    <div class="face left"></div>
+                    <div class="face right"></div>
+                </div>
+                <div class="cube h3 w1 l2">
+                    <div class="face top"></div>
+                    <div class="face left"></div>
+                    <div class="face right"></div>
+                </div>
+                <div class="cube h3 w1 l3">
+                    <div class="face top"></div>
+                    <div class="face left"></div>
+                    <div class="face right"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="glass">
+        <header>
+            <h1>AegisGC3</h1>
+        </header>
+
+        <nav>
+            <a href="#" id="home-link">Home</a>
+            <a href="#" id="about-link">About</a>
+            <a href="#" id="admins-link">Admins</a>
+            <a href="#" id="contact-link">Contact</a>
+        </nav>
+
+        <main>
+            <div id="content-container" class="content"></div>
+        </main>
+    </div>
+
+    <script>
+        // Hide the loading screen after 5 seconds
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                const loadingScreen = document.getElementById('loading-screen');
+                loadingScreen.style.opacity = '0';
+                setTimeout(() => {
+                    loadingScreen.style.display = 'none';
+                }, 1500); // Match the transition duration
+            }, 5000); // 5 seconds delay
+        });
+
+        let currentSection = 'home';
+        const contentContainer = document.getElementById('content-container');
+
+        function loadContent(section) {
+            let newContent = '';
+            switch (section) {
+                case 'home':
+                    newContent = `
+                        <h2 class="home-text">Welcome to AegisGC3</h2>
+                        <p class="home-text">Click the button below to see the cheat price.</p>
+                        <button class="price-button" id="price-button">Price of Cheat</button>
+                        <button class="price-button" id="freekey-button">Get Free Key</button>
+                        <div class="price-container" id="price-list">
+                            <p class="price-item">3 Days - $7</p>
+                            <p class="price-item">7 Days - $14</p>
+                            <p class="price-item">30 Days - $34</p>
+                        </div>`;
+                    break;
+                case 'about':
+                    newContent = `
+                        <h2 class="home-text">About Us</h2>
+                        <a href="https://t.me/GC3IOS" target="_blank">
+                            <img src="https://i.ibb.co/FLs1KF1c/IMG-1544.png" alt="Telegram Logo" class="telegram-logo">
+                        </a>
+                        <p class="about-text">AegisGC3 is a premium cheat for iOS Call of Duty Mobile, supporting both Garena and Global versions for non-jailbreak and jailbreak devices. Our goal is to provide the best experience to players looking for an edge in the game, with a seamless and reliable cheat for iOS.</p>`;
+                    break;
+                case 'admins':
+                    newContent = `
+                        <h2 class="admins-text">Admins</h2>
+                        <p class="admins-text"><strong>Admin:</strong><br>
+                            @tencentco<br>
+                            @AegisHax_Bot<br>
+                            @kemhourCN</p>
+                        <p class="admins-text"><strong>Admin/Assists:</strong><br>
+                            @kemhourCN<br>
+                            @MoonMods0</p>`;
+                    break;
+                case 'contact':
+                    newContent = `<h2 class="contact-text">Contact Us</h2><p class="contact-text">Buy key or reseller Contact the owner @tencentco.</p>`;
+                    break;
+            }
+
+            contentContainer.innerHTML = newContent;
+            contentContainer.classList.add('active');
+            document.getElementById('price-button')?.addEventListener('click', () => {
+                document.getElementById('price-list').classList.toggle('show');
+            });
+            document.getElementById('freekey-button')?.addEventListener('click', () => {
+                window.location.href = 'https://qmor3232.github.io/IOSfreek/'; // Replace with your actual URL
+            });
+        }
+
+        document.querySelectorAll('nav a').forEach(link => link.addEventListener('click', function(event) {
+            event.preventDefault();
+            contentContainer.classList.remove('active');
+            contentContainer.classList.remove('slide-in');
+            contentContainer.classList.add('content');
+            setTimeout(() => {
+                loadContent(event.target.id.replace('-link', ''));
+            }, 300);
+        }));
+
+        // Initially load the home content
+        loadContent(currentSection);
+    </script>
+</body>
+</html>
